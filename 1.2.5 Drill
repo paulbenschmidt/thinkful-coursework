@@ -1,0 +1,71 @@
+--- Drill 1
+WITH rainy as 
+(
+SELECT 
+	DATE(date) as rain_date
+FROM
+	weather
+WHERE 
+	events = 'Rain'
+GROUP BY 1
+)
+SELECT
+	t.trip_id,
+	t.duration,
+	t.start_date
+FROM
+	trips t
+JOIN
+	rainy r
+ON
+	DATE(t.start_date) = r.rain_date
+ORDER BY duration DESC
+LIMIT 3;
+
+--- Drill 2
+SELECT
+    status.station_id,
+	stations.name,
+	COUNT (CASE WHEN docks_available=0 then 1 END) empty_count
+FROM status
+JOIN stations
+on stations.station_id = status.station_id
+GROUP BY 1, 2
+ORDER BY empty_count DESC;
+
+---Drill 3
+SELECT
+	t.start_station,
+	s.dockcount,
+	COUNT(*)
+FROM trips t
+JOIN stations s
+ON s.name=t.start_station
+GROUP BY 1, 2
+ORDER BY 2 DESC;
+
+---Drill 4
+WITH rainy as 
+(
+SELECT 
+	DATE(date) as rain_date
+FROM weather
+WHERE events = 'Rain'
+GROUP BY 1
+),
+rain_trips AS (
+SELECT
+	trip_id,
+	duration,
+	DATE(trips.start_date) as rain_trip_date
+FROM trips
+JOIN rainy
+ON rainy.rain_date = DATE(trips.start_date)
+ORDER BY duration DESC
+)
+SELECT
+	rain_trip_date,
+	max(duration) as max_duration
+FROM rain_trips
+GROUP BY 1
+ORDER BY max_duration DESC;
